@@ -75,8 +75,37 @@ const getMe = asyncHandler(async (req, res) => {
   res.status(200).json(req.user)
 })
 
+// @desc    Update user profile
+// @route   PUT /api/users/update
+// @access  Private
+const updateAccount = asyncHandler(async (req, res) => {
+  let user = await User.findById(req.params.userId)
+
+  if (!user) {
+    res.status(400)
+    throw new Error("User not found!")
+  }
+
+  user = await User.findByIdAndUpdate(
+    req.params.userId,
+    {
+      $set: req.body,
+    },
+    {
+      new: true,
+    }
+  )
+
+  res.status(200).json({
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    token: generateToken(user._id),
+  })
+})
+
 // @desc    Delete user
-// @route   GET /api/users/deactivate
+// @route   DELETE /api/users/deactivate
 // @access  Private
 const deactivateAccount = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.userId)
@@ -101,5 +130,6 @@ module.exports = {
   registerUser,
   loginUser,
   getMe,
+  updateAccount,
   deactivateAccount,
 }

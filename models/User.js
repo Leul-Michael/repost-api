@@ -24,6 +24,16 @@ const userSchema = mongoose.Schema(
 )
 
 userSchema.pre("remove", async function (next) {
+  const posts = await Post.find().populate("user")
+  posts.map((post) => {
+    post.comments.map(async (comment, index) => {
+      if (comment.user.toString() === this.id) {
+        post.comments.splice(index, 1)
+        await post.save()
+      }
+    })
+  })
+
   await Post.deleteMany({ user: this.id }).exec()
 
   next()
